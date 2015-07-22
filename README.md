@@ -1,38 +1,45 @@
-A [Chargify API](http://support.chargify.com/faqs/api/api-user-guide) client written in Python.
+A [Chargify API](https://docs.chargify.com/api-introduction) client written in Python.
 
 Basic Usage
 -----------
+
 See the test cases for a full list of examples for all supported API calls.
 
 	chargify = Chargify('api_key','subdomain')
 
 	# List products
-    result = chargify.products()
-    
+    # GET http://subdomain.chargify.com/products.json
+    res = chargify.products()
+
 	# List customers
-	result = chargify.customers()
+    # GET http://subdomain.chargify.com/customers.json
+	res = chargify.customers()
 
 	# List a specific customer
-	result = chargify.customers(customer_id=123)
+    # GET https://subdomain.chargify.com/customers/123.json
+	res = chargify.customers(customer_id=123)
 
 	# Create a customer
-	result = chargify.customers.create(data={
+    # POST https://subdomain.chargify.com/customers.json
+	res = chargify.customers.create(data={
         'customer':{
             'first_name':'Joe',
             'last_name':'Blow',
             'email':'joe@example.com'
         }
     })
-    
+
     # Update a customer
-    result = chargify.customers.update(customer_id=123,data={
+    # PUT https://subdomain.chargify.com/customers/123.json
+    res = chargify.customers.update(customer_id=123,data={
         'customer':{
             'email':'joe@example.com'
         }
     })
-    
+
     # Create a subscription
-    result = chargify.subscriptions.create(data={
+    # POST https://subdomain.chargify.com/subscriptions.json
+    res = chargify.subscriptions.create(data={
         'subscription':{
             'product_handle':'my_product',
             'customer_attributes':{
@@ -47,26 +54,34 @@ See the test cases for a full list of examples for all supported API calls.
             }
         }
     })
-    
+
     # Cancel a subscription
-    result = chargify.subscriptions.delete(subscription_id=123,data={
+    # DELETE https://subdomain.chargify.com/subscriptions/123.json
+    res = chargify.subscriptions.delete(subscription_id=123,data={
         'subscription':{
             'cancellation_message':'Goodbye!'
         }
     })
-    
+
     # Migrate a subscription
-    result = chargify.subscriptions.migrations.create(subscription_id=123,data={
+    # POST https://subdomain.chargify.com/subscriptions/123/migrations.json
+    res = chargify.subscriptions.migrations.create(subscription_id=123,data={
         'product_id':1234
     })
-    
+
     # Add a one time charge to a subscription
-    result = chargify.subscriptions.charges.create(subscription_id=123,data={
+    # POST https://subdomain.chargify.com/subscriptions/123/charges.json
+    res = chargify.subscriptions.charges.create(subscription_id=123,data={
         'charge':{
             'amount':'1.00',
             'memo':'This is the description of the one time charge.'
         }
     })
-    
+
     # List transactions for a subscription
-    result = chargify.subscriptions.transactions(subscription_id=123)
+    # GET https://subdomain.chargify.com/subscriptions/123/transactions.json
+    res = chargify.subscriptions.transactions(subscription_id=123)
+
+    # get customer's subscritptions
+    # GET https://subdomain.chargify.com/customers/123/subscriptions.json
+    res = chargify.customers.subscriptions(customer_id=123)
