@@ -8,6 +8,11 @@ except ImportError:
 import urllib
 import urllib2
 import base64
+import logging
+
+
+# set this module logger
+logger = logging.getLogger(__name__)
 
 
 # Define all exceptions
@@ -102,9 +107,16 @@ class ChargifyHttpClient(object):
         opener = urllib2.build_opener(urllib2.HTTPHandler)
         request = urllib2.Request(url=url, data=data)
 
+        # pep8 forbids to asign lambdas to variables.
+        # most pep8 checkers match to e731 even the asignation is
+        # to a variable but a property.
+        # to avoid inconveniences, here I use an inner function
+        # insteda a lambda.
+        def f_method():
+            return method
+
         # Build header
-        # request.get_method = lambda: method
-        request.get_method = method
+        request.get_method = f_method
         request.add_header(
             'Authorization',
             'Basic %s' % base64.encodestring('%s:%s' % (api_key, 'x'))[:-1]
@@ -117,11 +129,15 @@ class ChargifyHttpClient(object):
 
         # Make request and trap for HTTP errors
         try:
+            logger.debug(' %s %s', method, request.get_full_url())
             response = opener.open(request)
         except urllib2.HTTPError, e:
             response = e
         except urllib2.URLError, e:
             raise ChargifyConnectionError(e)
+        except Exception, e:
+            logger.debug(e)
+            raise e
 
         result = response.read()
 
