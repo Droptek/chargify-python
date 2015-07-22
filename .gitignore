@@ -1,2 +1,6 @@
+*.bak
+*~
 *.pyc
 .DS_Store
+.ropeproject
+.idea

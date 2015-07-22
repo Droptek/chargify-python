@@ -9,53 +9,83 @@ import urllib
 import urllib2
 import base64
 
+
 # Define all exceptions
-# Corresponds to HTTP response codes specified here:
-# http://support.chargify.com/faqs/api/api-user-guide
+
 class ChargifyError(Exception):
+    """
+    Base class for Chargify exceptions
+    """
     def __init__(self, error_data=None, *a, **kw):
         self.error_data = error_data or {}
         super(ChargifyError, self).__init__(*a, **kw)
 
-class ChargifyConnectionError(ChargifyError):pass
-class ChargifyUnauthorizedError(ChargifyError):pass
-class ChargifyForbiddenError(ChargifyError):pass
-class ChargifyNotFoundError(ChargifyError):pass
-class ChargifyUnprocessableEntityError(ChargifyError):pass
-class ChargifyServerError(ChargifyError):pass
+
+class ChargifyConnectionError(ChargifyError):
+    pass
+
+
+class ChargifyUnauthorizedError(ChargifyError):
+    pass
+
+
+class ChargifyForbiddenError(ChargifyError):
+    pass
+
+
+class ChargifyNotFoundError(ChargifyError):
+    pass
+
+
+class ChargifyUnprocessableEntityError(ChargifyError):
+    pass
+
+
+class ChargifyServerError(ChargifyError):
+    pass
+
+
+class ChargifyDuplicationError(ChargifyError):
+    pass
+
+
+# end of: Define all exceptions
+
 
 ERROR_CODES = {
     201: False,
     401: ChargifyUnauthorizedError,
     403: ChargifyForbiddenError,
     404: ChargifyNotFoundError,
+    409: ChargifyDuplicationError,
     422: ChargifyUnprocessableEntityError,
     500: ChargifyServerError,
 }
 
 # Maps certain function names to HTTP verbs
 VERBS = {
-    'create':'POST',
-    'read':'GET',
-    'update':'PUT',
-    'delete':'DELETE'
+    'create': 'POST',
+    'read': 'GET',
+    'update': 'PUT',
+    'delete': 'DELETE'
 }
 
 # A list of identifiers that should be extracted and placed into the url string if they are
 # passed into the kwargs.
 IDENTIFIERS = {
-    'customer_id':'customers',
-    'product_id':'products',
-    'subscription_id':'subscriptions',
-    'component_id':'components',
-    'handle':'handle',
-    'statement_id':'statements',
-    'product_family_id':'product_families',
-    'coupon_id':'coupons',
-    'transaction_id':'transactions',
-    'usage_id':'usages',
-    'migration_id':'migrations',
+    'customer_id': 'customers',
+    'product_id': 'products',
+    'subscription_id': 'subscriptions',
+    'component_id': 'components',
+    'handle': 'handle',
+    'statement_id': 'statements',
+    'product_family_id': 'product_families',
+    'coupon_id': 'coupons',
+    'transaction_id': 'transactions',
+    'usage_id': 'usages',
+    'migration_id': 'migrations',
 }
+
 
 class ChargifyHttpClient(object):
     """
@@ -73,13 +103,17 @@ class ChargifyHttpClient(object):
         request = urllib2.Request(url=url, data=data)
 
         # Build header
-        request.get_method = lambda: method
-        request.add_header('Authorization', 'Basic %s' % base64.encodestring('%s:%s' % (api_key, 'x'))[:-1])
+        # request.get_method = lambda: method
+        request.get_method = method
+        request.add_header(
+            'Authorization',
+            'Basic %s' % base64.encodestring('%s:%s' % (api_key, 'x'))[:-1]
+        )
         request.add_header('User-Agent', 'Chargify Python Client')
         request.add_header('Accept', 'application/json')
         request.add_header('Content-Type', 'application/json')
         if data is None:
-            request.add_header('Content-Length','0')
+            request.add_header('Content-Length', '0')
 
         # Make request and trap for HTTP errors
         try:
@@ -94,13 +128,14 @@ class ChargifyHttpClient(object):
         try:
             data = json.loads(result)
         except ValueError:
-            data = {'body': result} #Is not JSON
+            data = {'body': result}  # Is not JSON
 
         if response.code in ERROR_CODES and ERROR_CODES[response.code] is not False:
             error_class = ERROR_CODES[e.code]
             raise error_class(data)
 
         return data
+
 
 class Chargify(object):
     """
@@ -136,8 +171,9 @@ class Chargify(object):
     def construct_request(self, **kwargs):
         """
         :param kwargs: The arguments passed into the request. Valid values are:
-            'customer_id', 'product_id', 'subscription_id', 'component_id', 'handle' will be extracted
-            and placed into the url. 'data' will be serialized into a JSON string and POSTed with
+            'customer_id', 'product_id', 'subscription_id', 'component_id',
+            'handle' will be extracted and placed into the url.
+            'data' will be serialized into a JSON string and POSTed with
             the request.
         """
         path = self.path[:]
@@ -177,4 +213,3 @@ class Chargify(object):
     def __call__(self, **kwargs):
         url, method, data = self.construct_request(**kwargs)
         return self.client.make_request(url, method, data, self.api_key)
-

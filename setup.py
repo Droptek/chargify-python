@@ -1,5 +1,6 @@
 from setuptools import setup
 
+
 setup(
     name='chargify-python',
     version='0.1',
@@ -8,7 +9,7 @@ setup(
     author='Steven Wei',
     author_email='steve@hindsightlabs.com',
     description='A Chargify API client written in Python.',
-    long_description = open("README.md").read(),
+    long_description=open("README.md").read(),
     py_modules=['chargify'],
     zip_safe=False,
     platforms='any',
