@@ -143,8 +143,8 @@ class ChargifyHttpClient(object):
         except ValueError:
             data = {'body': result}  # Is not JSON
 
-        if response.status_code in ERROR_CODES and ERROR_CODES[response.code] is not False:
-            error_class = ERROR_CODES[e.code]
+        if response.status_code in ERROR_CODES and ERROR_CODES[response.status_code] is not False:
+            error_class = ERROR_CODES[response.status_code]
             raise error_class(data)
 
         return data
@@ -201,7 +201,7 @@ class Chargify(object):
         # Extract certain kwargs and place them in the url instead
         for identifier, name in IDENTIFIERS.items():
             value = kwargs.pop(identifier, None)
-            if value:
+            if value and name in path:
                 path.insert(path.index(name)+1, str(value))
 
         # Convert the data to a JSON string
