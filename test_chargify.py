@@ -113,9 +113,9 @@ class TestSubscriptions(ChargifyTestCase):
         })
         self.assertResult(
             result, '/subscriptions.json', 'POST',
-            '{"subscription":'
+            '{"subscription": '
             '{"product_handle": "my_product", '
-            '"credit_card_attributes":'
+            '"credit_card_attributes": '
             '{"expiration_month": "10", "full_number": "1", "expiration_year": "2020"}, '
             '"customer_attributes": '
             '{"first_name": "Joe", "last_name": "Blow", "email": "joe@example.com"}}}'
@@ -229,7 +229,6 @@ def suite():
                       TestReactivate, TestTransactions):
         test_suite.addTest(unittest.makeSuite(test_case))
     return test_suite
-
 
 if __name__ == "__main__":
     unittest.main(defaultTest='suite')

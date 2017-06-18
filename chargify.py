@@ -6,9 +6,9 @@ except ImportError:
     except ImportError:
         raise EnvironmentError("You must have a JSON module installed such as simplejson")
 import urllib
-import urllib2
 import base64
 import logging
+import requests
 
 
 # set this module logger
@@ -104,49 +104,46 @@ class ChargifyHttpClient(object):
         :param method: The HTTP method to use.
         :param data: Any POST data that should be included with the request.
         """
-        opener = urllib2.build_opener(urllib2.HTTPHandler)
-        request = urllib2.Request(url=url, data=data)
-
-        # pep8 forbids to asign lambdas to variables.
-        # most pep8 checkers match to e731 even the asignation is
-        # to a variable but a property.
-        # to avoid inconveniences, here I use an inner function
-        # insteda a lambda.
-        def f_method():
-            return method
 
         # Build header
-        request.get_method = f_method
-        request.add_header(
-            'Authorization',
-            'Basic %s' % base64.encodestring('%s:%s' % (api_key, 'x'))[:-1]
-        )
-        request.add_header('User-Agent', 'Chargify Python Client')
-        request.add_header('Accept', 'application/json')
-        request.add_header('Content-Type', 'application/json')
+        headers = {}
+        headers['Authorization']= 'Basic %s' % base64.encodestring('%s:%s' % (api_key, 'x'))[:-1]
+
+        headers['User-Agent']= 'Chargify Python Client'
+        headers['Accept']= 'application/json'
+        headers['Content-Type']= 'application/json'
         if data is None:
-            request.add_header('Content-Length', '0')
+            headers['Content-Length'] = '0'
 
         # Make request and trap for HTTP errors
         try:
-            logger.debug(' %s %s', method, request.get_full_url())
-            response = opener.open(request)
-        except urllib2.HTTPError, e:
+            if method == 'GET':
+                response = requests.get(url, headers=headers)
+            elif method == 'POST':
+                response = requests.get(url, headers=headers, data=data)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers)
+            elif method == 'PATCH':
+                response = requests.patch(url, headers=headers, data=data)
+            elif method == 'PUT':
+                response = requests.patch(url, headers=headers, data=data)
+
+        except requests.HTTPError, e:
             response = e
-        except urllib2.URLError, e:
+        except requests.URLError, e:
             raise ChargifyConnectionError(e)
         except Exception, e:
             logger.debug(e)
             raise e
 
-        result = response.read()
+        result = response.content
 
         try:
             data = json.loads(result)
         except ValueError:
             data = {'body': result}  # Is not JSON
 
-        if response.code in ERROR_CODES and ERROR_CODES[response.code] is not False:
+        if response.status_code in ERROR_CODES and ERROR_CODES[response.code] is not False:
             error_class = ERROR_CODES[e.code]
             raise error_class(data)
 
@@ -229,3 +226,4 @@ class Chargify(object):
     def __call__(self, **kwargs):
         url, method, data = self.construct_request(**kwargs)
         return self.client.make_request(url, method, data, self.api_key)
+
