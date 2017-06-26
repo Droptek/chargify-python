@@ -126,7 +126,7 @@ class ChargifyHttpClient(object):
             elif method == 'PATCH':
                 response = requests.patch(url, headers=headers, data=data)
             elif method == 'PUT':
-                response = requests.patch(url, headers=headers, data=data)
+                response = requests.put(url, headers=headers, data=data)
 
         except requests.HTTPError, e:
             response = e
@@ -226,4 +226,3 @@ class Chargify(object):
     def __call__(self, **kwargs):
         url, method, data = self.construct_request(**kwargs)
         return self.client.make_request(url, method, data, self.api_key)
-
