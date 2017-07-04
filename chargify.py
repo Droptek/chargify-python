@@ -120,7 +120,7 @@ class ChargifyHttpClient(object):
             if method == 'GET':
                 response = requests.get(url, headers=headers)
             elif method == 'POST':
-                response = requests.get(url, headers=headers, data=data)
+                response = requests.post(url, headers=headers, data=data)
             elif method == 'DELETE':
                 response = requests.delete(url, headers=headers)
             elif method == 'PATCH':
